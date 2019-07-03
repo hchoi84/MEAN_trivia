@@ -1,0 +1,27 @@
+*{
+    border: 1px dotted red;
+}
+
+.container{
+    width: 1000px;
+    margin: auto;
+}
+.header{
+    display: flex;
+    justify-content: space-between;
+    margin: 0px 50px;
+}
+.game_space{
+    margin: auto;
+}
+.game_table{
+    width: 100%;
+    border-spacing: 60px 20px;
+}
+.q_box{
+    width: 20%;
+    height: 150px;
+    text-align: center;
+    border: 5px double blue;
+    border-radius: 10px;
+}

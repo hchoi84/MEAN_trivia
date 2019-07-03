@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <title>Trivia</title>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="continue">
+                <button id="new_q">Continue with new questions</button>
+            </div>
+            <div class="title">
+                <h1>Trivia Night</h1>
+            </div>
+            <div class="points">
+                <h1>300 Points</h1>
+            </div>
+        </div>
+
+        <div id="message"></div>
+
+        <div class="game_space">
+            <table class="game_table">
+                <thead>
+                    <th id="category1" class="q_head">Geography</th>
+                    <th id="category2" class="q_head">Entertainment</th>
+                    <th id="category3" class="q_head">Science</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="c1easy" class="q_box" category="0">100</td>
+                        <td id="c2easy" class="q_box" category="1">100</td>
+                        <td id="c3easy" class="q_box" category="2">100</td>
+                    </tr>
+                    <tr>
+                        <td id="c1med" class="q_box" category="0">200</td>
+                        <td id="c2med" class="q_box" category="1">200</td>
+                        <td id="c3med" class="q_box" category="2">200</td>
+                    </tr>
+                    <tr>
+                        <td id="c1hard" class="q_box" category="0">300</td>
+                        <td id="c2hard" class="q_box" category="1">300</td>
+                        <td id="c3hard" class="q_box" category="2">300</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    
+    </div>
+    
+    <script>
+        var categories = [];
+        var questions;
+        var difficulties = {'100':'easy', '200': 'medium', '300': 'hard'};
+        var is_on_q = false;
+        $.get("https://opentdb.com/api.php?amount=10&type=multiple", processData);
+
+        function processData(data){
+            questions = data.results;
+            console.log(questions);
+            categories.push(questions[0].category);
+            filter3Cats(questions);
+            for (var i=0; i<categories.length; i++){
+                console.log(categories[i]);
+                $("#category"+(i+1)).html(categories[i])
+            }
+        }
+
+        function filter3Cats(questions){
+            for (i in questions){
+                if(categories.length >= 3){
+                    break;
+                }
+                var isDupe = false;
+                for (j in categories){
+                    if(questions[i].category == categories[j]){
+                        isDupe = true;
+                        break;
+                    }
+                }
+                if (!isDupe){
+                    categories.push(questions[i].category);
+                }
+            }
+            console.log(categories);
+        }
+
+
+
+        $(document).on('click', function(e){
+            var id = e.target.id;
+            var diff = difficulties[e.target.innerHTML];
+            if (!is_on_q){
+                if (e.target.attributes.category !== undefined){
+                    let category_id = e.target.attributes.category.value;
+                    if (getQuestion(diff, category_id) == "No Question"){
+                        $("#"+id).html("No Question");
+                        return;
+                    }
+                    $("#message").html("On a question");
+                    console.log(id + diff + category_id);
+                    $("#"+id).html(getQuestion(diff, category_id));
+                    is_on_q=true;
+                }
+            }
+            else{
+                if (e.target.className == "correct"){
+                    let parent = $("."+e.target.className).parent()[0].attributes.id.value;
+                    $("#"+parent).html("CORRECT!");
+                    is_on_q=false;
+                    $("#message").html("Select next question");
+                    return;
+                }
+                else if (e.target.className == "incorrect"){
+                    let parent = $("."+e.target.className).parent()[0].attributes.id.value;
+                    correct_ans=$("."+e.target.className).siblings('.correct').text();
+                    $("#"+parent).html("Sorry! Correct answer was " + correct_ans);
+                    is_on_q=false;
+                    $("#message").html("Select next question");
+                    return;
+                }
+            }
+            
+        });
+
+        function getQuestion(diff, cat_id){
+            // $("#"+id).on('click', function(e){
+                // if (e.target !== this){
+                //     $(this).off();
+                //     return;
+                // }
+                for (i in questions){
+                    if (questions[i].category == categories[parseInt(cat_id)] && questions[i].difficulty == diff){
+                        var output = ""
+                        output += "<p>" + questions[i].question + "</p>"
+                        for (j in questions[i].incorrect_answers){
+                            output += "<p class='incorrect'>" + questions[i].incorrect_answers[j] + "</p>"
+                        }
+                        output += "<p class='correct'>" + questions[i].correct_answer + "</p>"
+                        // $(this).html(output);
+                        // break;
+                        return output;
+                    }
+                }
+                return "No Question";
+            // });
+        }
+        
+        // $('#c1easy').on('click', '.correct', function(e){
+        //     $(this).parent().html("CORRECT!")
+        // })
+
+        // $('#c1easy').on('click', '.incorrect', function(e){
+        //     correct_ans=$(this).siblings('.correct').text();
+        //     $(this).parent().html("Sorry! Correct answer was " + correct_ans);
+        // })
+
+        // $('#c1med').on('click', function(e){
+        //     if (e.target !== this){
+        //         $(this).off();
+        //         return;
+        //     }
+        //     for (i in questions){
+        //         if (questions[i].category == categories[i] && questions[i].difficulty == 'medium'){
+        //             var output = ""
+        //             output += "<p>" + questions[i].question + "</p>"
+        //             for (j in questions[i].incorrect_answers){
+        //                 output += "<p class='incorrect'>" + questions[i].incorrect_answers[j] + "</p>"
+        //             }
+        //             output += "<p class='correct'>" + questions[i].correct_answer + "</p>"
+        //             $(this).html(output);
+        //             break;
+        //         }  
+        //     }
+        // })
+        
+        // $('#c1med').on('click', '.correct', function(e){
+        //     $(this).parent().html("CORRECT!")
+        // })
+
+        // $('#c1med').on('click', '.incorrect', function(e){
+        //     correct_ans=$(this).siblings('.correct').text();
+        //     $(this).parent().html("Sorry! Correct answer was " + correct_ans);
+        // })
+
+    </script>
+</body>
+</html>
